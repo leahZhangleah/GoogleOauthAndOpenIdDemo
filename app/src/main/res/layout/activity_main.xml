@@ -10,7 +10,14 @@
     <com.google.android.gms.common.SignInButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/google_sign_in_btn"/>
+        android:id="@+id/google_sign_in_btn"
+        android:layout_margin="10dp"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Google Sign out"
+        android:layout_margin="10dp"
+        android:id="@+id/google_sign_out_btn"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
