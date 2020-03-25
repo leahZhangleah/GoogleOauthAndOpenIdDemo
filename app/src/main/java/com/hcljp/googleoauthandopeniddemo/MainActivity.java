@@ -1,16 +1,27 @@
 package com.hcljp.googleoauthandopeniddemo;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+    public static final int GOOGLE_SIGN_IN_REQUEST_CODE=100;
+    private static final String TAG = "MainActivity";
     GoogleSignInClient mGoogleSignInClient;
+    TextView googleSignInAccountName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,6 +32,9 @@ public class MainActivity extends AppCompatActivity {
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
+        SignInButton signInButton = findViewById(R.id.google_sign_in_btn);
+        signInButton.setOnClickListener(this);
+        googleSignInAccountName = findViewById(R.id.google_sign_in_account_name);
     }
 
     @Override
@@ -35,6 +49,44 @@ public class MainActivity extends AppCompatActivity {
             //todo
         }
 
+    }
+
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()){
+            case R.id.google_sign_in_btn:
+                signIn();
+                break;
+        }
+    }
+
+    private void signIn() {
+        Intent signIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signIntent,GOOGLE_SIGN_IN_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==GOOGLE_SIGN_IN_REQUEST_CODE){
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> task) {
+        try{
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            updateUI(account);
+        } catch (ApiException e) {
+            Log.w(TAG, "sign in result: failed code="+e.getStatusCode() );
+            e.printStackTrace();
+        }
+    }
+
+    private void updateUI(GoogleSignInAccount account) {
+        String msg = "signed in email: "+ account.getEmail()+"\n google id: "+account.getId()+"\n id token: "+account.getIdToken();
+        googleSignInAccountName.setText(msg);
     }
 }
 
