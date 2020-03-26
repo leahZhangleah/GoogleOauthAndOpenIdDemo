@@ -31,6 +31,7 @@ import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final int GOOGLE_SIGN_IN_REQUEST_CODE=100;
+    public static final String CLIENT_ID=""; // web application client id on google developer console
     private static final String TAG = "MainActivity";
     GoogleSignInClient mGoogleSignInClient;
     TextView googleSignInAccountName,authenticatedAccountInfo;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
         GoogleSignInOptions gso = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(CLIENT_ID)
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
@@ -122,29 +124,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void updateUI(GoogleSignInAccount account) {
         String msg = "signed in email: "+ account.getEmail()+"\n google id: "+account.getId();
         googleSignInAccountName.setText(msg);
-        authenticateIdToken(account.getIdToken());
+        Intent intent = new Intent(this,MyIntentService.class);
+        intent.putExtra("id_token",account.getIdToken());
+        intent.putExtra("client_id",CLIENT_ID);
+        MyIntentService.enqueueWork(this,intent);
     }
-
-    private void authenticateIdToken(String idToken) {
-        String CLIENT_ID="";// web application client id on google developer console
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
-                .setAudience(Collections.singletonList(CLIENT_ID))
-                .build();
-        try {
-            GoogleIdToken googleIdToken = verifier.verify(idToken);
-            if(googleIdToken!=null){
-                GoogleIdToken.Payload payload = googleIdToken.getPayload();
-                String msg = "authenticated email: "+ payload.getEmail()+"\n user id: "+payload.getSubject()+"\n email verified: "+payload.getEmailVerified();
-                authenticatedAccountInfo.setText(msg);
-            }else{
-                Toast.makeText(MainActivity.this,"id token authentication failed",Toast.LENGTH_SHORT).show();
-            }
-        } catch (GeneralSecurityException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    
 }
 
 
