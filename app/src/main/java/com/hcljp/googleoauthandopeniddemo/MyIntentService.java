@@ -2,6 +2,7 @@ package com.hcljp.googleoauthandopeniddemo;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -38,14 +39,23 @@ public class MyIntentService extends JobIntentService {
             if(googleIdToken!=null){
                 GoogleIdToken.Payload payload = googleIdToken.getPayload();
                 String msg = "authenticated email: "+ payload.getEmail()+"\n user id: "+payload.getSubject()+"\n email verified: "+payload.getEmailVerified();
-                Toast.makeText(MyIntentService.this,msg,Toast.LENGTH_SHORT).show();
+                showToast(msg);
             }else{
-                Toast.makeText(MyIntentService.this,"id token authentication failed",Toast.LENGTH_SHORT).show();
+                showToast("id token authentication failed");
             }
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    final Handler mHandler = new Handler();
+    private void showToast(final CharSequence text){
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MyIntentService.this,text,Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
