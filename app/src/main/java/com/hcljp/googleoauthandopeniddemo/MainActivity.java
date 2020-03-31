@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             GoogleSignInAccount account = task.getResult(ApiException.class);
             String authCode = account.getServerAuthCode();
             String idToken = account.getIdToken();
+            Log.i(TAG, "id token without setting idToken:"+idToken);
             Set<Scope> scopes = account.getGrantedScopes();
             while(scopes.iterator().hasNext()){
                 Log.i(TAG, "scope: "+scopes.iterator().next().toString());
