@@ -31,6 +31,9 @@ public class MyIntentService extends JobIntentService {
     }
 
     private void authenticateIdToken(String idToken,String client_id) {
+        //use google api client to verify id token
+        //todo: better to send id token to own back end server and verify there.
+        //refer to  https://developers.google.com/identity/sign-in/android/backend-auth#send-the-id-token-to-your-server
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance())
                 .setAudience(Collections.singletonList(client_id))
                 .build();
@@ -39,6 +42,8 @@ public class MyIntentService extends JobIntentService {
             if(googleIdToken!=null){
                 GoogleIdToken.Payload payload = googleIdToken.getPayload();
                 String msg = "authenticated email: "+ payload.getEmail()+"\n user id: "+payload.getSubject()+"\n email verified: "+payload.getEmailVerified();
+                //if we have our own back end, we can check if we have already has the user in the database, create one if no
+                //or create a new session if yes
                 showToast(msg);
             }else{
                 showToast("id token authentication failed");

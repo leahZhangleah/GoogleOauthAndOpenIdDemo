@@ -16,8 +16,10 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -28,10 +30,12 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final int GOOGLE_SIGN_IN_REQUEST_CODE=100;
-    public static final String CLIENT_ID=""; // web application client id on google developer console
+    // web application client id on google developer console
+    public static final String CLIENT_ID="";
     private static final String TAG = "MainActivity";
     GoogleSignInClient mGoogleSignInClient;
     TextView googleSignInAccountName,authenticatedAccountInfo;
@@ -41,9 +45,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
-        GoogleSignInOptions gso = new GoogleSignInOptions
+        /*GoogleSignInOptions gso = new GoogleSignInOptions
                 .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(CLIENT_ID)
+                .requestEmail()
+                .build();*/
+        //if we want to enable back end server to access google api, we need to get server auth code
+        //while requesting drive scope access token, we also get ID Token
+        GoogleSignInOptions gso = new GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestScopes(new Scope(Scopes.DRIVE_APPFOLDER))
+                //.requestServerAuthCode(CLIENT_ID) //.requestIdToken(CLIENT_ID)
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this,gso);
@@ -114,6 +126,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void handleSignInResult(Task<GoogleSignInAccount> task) {
         try{
             GoogleSignInAccount account = task.getResult(ApiException.class);
+            String authCode = account.getServerAuthCode();
+            String idToken = account.getIdToken();
+            Set<Scope> scopes = account.getGrantedScopes();
+            while(scopes.iterator().hasNext()){
+                Log.i(TAG, "scope: "+scopes.iterator().next().toString());
+            }
             updateUI(account);
         } catch (ApiException e) {
             Log.w(TAG, "sign in result: failed code="+e.getStatusCode() );
@@ -122,12 +140,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void updateUI(GoogleSignInAccount account) {
-        String msg = "signed in email: "+ account.getEmail()+"\n google id: "+account.getId();
-        googleSignInAccountName.setText(msg);
-        Intent intent = new Intent(this,MyIntentService.class);
+        String accountInfo = "signed in email: "+ account.getEmail()+"\n google id: "+account.getId();
+        googleSignInAccountName.setText(accountInfo);
+
+        /*Intent intent = new Intent(this,MyIntentService.class);
         intent.putExtra("id_token",account.getIdToken());
         intent.putExtra("client_id",CLIENT_ID);
-        MyIntentService.enqueueWork(this,intent);
+        MyIntentService.enqueueWork(this,intent);*/
     }
 
 }
